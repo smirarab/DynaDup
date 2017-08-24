@@ -1,15 +1,16 @@
 DESCRIPTION:
 ----------------------
-DynaDup is a Java program based on the phylonet (bioinfo.cs.rice.edu/phylonet) for estimating species trees given a set of rooted gene trees, such that duplications or duplication and losses are minimized (approximately). The algorithm used is described in:
+DynaDup is a Java program based on phylonet (bioinfo.cs.rice.edu/phylonet) for estimating species trees given a set of rooted gene trees, such that duplications or duplication and losses are minimized (within a constrained search space). The algorithm used is described in:
 
-S. Bayzid, S. Mirarab, T. Warnow, "Optimal Species Trees under Gene Duplication and Loss", PSB 2013, in press. 
+S. Bayzid, S. Mirarab, T. Warnow, "Optimal Species Trees under Gene Duplication and Loss", Pacific Symposium on Biocomputing (PSB) 2013 and
+S. Bayzid and T. Warnow, "Gene Tree Parsimony for Incomplete Gene Trees". 17th International Workshop on Algorithms for Bioinformatics (WABI) 2017. Lecture Notes in Computer Science (LNCS).
 
 
 INSTALLATION:
 ----------------------
 There is no installation required to run DynaDup. You simply need to download the .zip file (from http://www.cs.utexas.edu/~phylo/software/dynadup/) and extract the contents to a folder of your choice. 
 
-Altrenatively, you can replicate the github repository (https://github.com/smirarab/DynaDup/) and run make.sh to build the project. 
+Alternatively, you can replicate the github repository (https://github.com/smirarab/DynaDup/) and run make.sh to build the project. 
 
 DynaDup is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested DynaDup only on Linux.
 
@@ -29,11 +30,11 @@ The results will be outputted to the standard output. To save the results in a f
 
 java -jar mgd.2.3.2.jar -i in.tree -o out.tre
 
-To minimize duplications and losses based on traditional definition using homomorphic restriction run (MGDL_h), run:
+To minimize duplications and losses based on the traditional definition (using homeomorphic restriction, MGDL_h), run:
 
 java -jar mgd.2.3.2.jar -i in.tree -dl
 
-To minimize duplications and losses using our new definition using the original tree and considering missing taxa as losses (MGDL), run:
+To minimize duplications and losses using our new definition (using the original tree and considering missing taxa as losses, MGDL), run:
 
 java -jar mgd.2.3.2.jar -i in.tree -dll
 
@@ -41,14 +42,14 @@ Note that, currently, the input gene trees need to be a) fully resolved, b) root
 
 Name Mapping
 --------------------------
-Leaves of a gene trees need to have distinct labels; these labels will appear as the leaf names in the species tree by default. If the gene trees contain multiple copies of the gene for the same taxa, you need to provide that information to DynaDup using the -a option. The -a allows you to provide a mapping between names in gene trees to names in the species tree. Gene tree names that map to the same species tree name are considered to be multiple copies all belonging to the same species. The -a option can be used in two ways, as described below. 
+The leaves of a gene tree need to have distinct labels; these labels will appear as the leaf names in the species tree by default. If the gene trees contain multiple copies of the gene for the same taxa, you need to provide that information to DynaDup using the -a option. The -a allows you to provide a mapping between names in gene trees to names in the species tree. Gene tree names that map to the same species tree name are considered to be multiple copies all belonging to the same species. The -a option can be used in two ways, as described below. 
 
 If there is only one string after -a, it needs to be the name of a file that lists all the mappings in the following format:
 
 species1: gene1.1,gene1.2,gene1.3;
 species2: gene2.1,gene2.2;
 
-Each line represents one speceies. Before the colon the species name is given, and then all the names in the gene tree that belong to that species are listed, with "," used to separate different names. In this example, species1 and species2 are the taxon names, and gene1.1, gene1.2, etc. are leave names from gene trees. If the name of the file containing these mappings is mapping.txt, the following command should be used:
+Each line represents one speceies. Before the colon the species name is given, and then all the names in the gene tree that belong to that species are listed, with "," used to separate different names. In this example, species1 and species2 are the taxon names, and gene1.1, gene1.2, etc. are leaf names from gene trees. If the name of the file containing these mappings is mapping.txt, the following command should be used:
 
 java -jar mgd.2.3.2.jar -i in.tree -a mapping.txt
 
@@ -65,28 +66,28 @@ maps 'human_1', 'human_2', and 'human_3' to 'human'; 'horse_ab_c' to 'horse'; an
 
 Algorithmic Details:
 ------------------------
-The based of our dynamic programming algorithm are described in our referenced publication. Here we describe some details not included in the paper. 
+The basics of our dynamic programming algorithm are described in our referenced publication. Here we describe some details not included in the paper. 
 
 In our current implementation, the set of subtree bipartitions to be considered are constructed as follows. We first construct a set of clusters, and then for any two clusters X and Y in this set of clusters, we consider X|Y as a subtree bipartition. 
 
-The set of clusters is created with the following rules. 
+The set of clusters is created with the following rules: 
 
 1- For any node v with subtree bipartition X|Y in gene trees, we include X, Y, X-Y and Y-X in the set of clusters. 
 2- If a cluster A cannot be further resolved based on the available set of subtree bipartitions, we find the set of largest subclusters of A, and for each B in this set, we add A-B to the set of clusters. This ensures that we can always find at least one fully resolved tree for any given set of incomplete gene trees. 
-3- If -cs and -cd options are given, extra subtree bipartitions are added as follows. For any cluster C if |C| >= cs*|taxa|, we add complementary clusters (with respect to C) of all subclusters of C if size of the subcluster is >= cd*|C|.
-4- If extra trees are provided using -ex option, clusters from those trees are also added the set of clusters. 
+3- If -cs and -cd options are given, extra subtree bipartitions are added as follows. For any cluster C if |C| >= cs*|taxa|, we add complementary clusters (with respect to C) of all subclusters of C if the size of the subcluster is >= cd*|C|.
+4- If extra trees are provided using -ex option, clusters from those trees are also added to the set of clusters. 
 
 Memory:
 ------------------------
 
-For big datasets (say 500 taxon) increasing the memory available to Java can result in speed up. Note that you should give Java only as much as free memory you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke DynaDup using the following command to make all the 3GB available to Java:
+For big datasets (say 500-taxon), increasing the memory available to Java can result in a speed-up. Note that you should give Java only as much as free memory you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke DynaDup using the following command to make all the 3GB available to Java:
 
 java -Xmx3000M -jar mgd.2.3.2.jar -i in.tree
 
 
 Acknowledgment
 -----------------------
-DynaDup code uses code from PhyloNet package.
+DynaDup code uses code from the PhyloNet package (by Luay Nakhleh).
 
 Bug Reports:
 -----------------
