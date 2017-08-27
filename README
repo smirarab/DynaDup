@@ -8,9 +8,7 @@ S. Bayzid and T. Warnow, "Gene Tree Parsimony for Incomplete Gene Trees". 17th I
 
 INSTALLATION:
 ----------------------
-There is no installation required to run DynaDup. You simply need to download the .zip file (from http://www.cs.utexas.edu/~phylo/software/dynadup/) and extract the contents to a folder of your choice. 
-
-Alternatively, you can replicate the github repository (https://github.com/smirarab/DynaDup/) and run make.sh to build the project. 
+There is no installation required to run DynaDup. You should replicate the github repository (https://github.com/smirarab/DynaDup/) and run make.sh to build the project. 
 
 DynaDup is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested DynaDup only on Linux.
 
