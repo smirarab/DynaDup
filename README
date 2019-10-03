@@ -4,7 +4,7 @@ DynaDup is a Java program based on phylonet (bioinfo.cs.rice.edu/phylonet) for e
 
 S. Bayzid, S. Mirarab, T. Warnow, "Optimal Species Trees under Gene Duplication and Loss", Pacific Symposium on Biocomputing (PSB) 2013 and
 S. Bayzid and T. Warnow, "Gene Tree Parsimony for Incomplete Gene Trees". 17th International Workshop on Algorithms for Bioinformatics (WABI) 2017. Lecture Notes in Computer Science (LNCS).
-
+S. Bayzid and T. Warnow, "Gene tree parsimony for incomplete gene trees: addressing true biological loss". Algorithms for Molecular Biology, 13, Article number: 1 (2018)
 
 INSTALLATION:
 ----------------------
