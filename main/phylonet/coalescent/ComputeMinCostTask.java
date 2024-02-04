@@ -81,20 +81,31 @@ public class ComputeMinCostTask {
 
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1) {
+			
 			int _el_num = -1;
 			if (inference.optimizeDuploss == 3) {
 				if (taxonNameMap == null) {
 					_el_num = DeepCoalescencesCounter.getClusterCoalNum(trees,
 							v.getCluster(), rooted);
-					// System.out.println(v + " XL is " + _el_num);
+					//System.out.println(v + " XL is " + _el_num);
 				} else {
 					_el_num = DeepCoalescencesCounter.getClusterCoalNum(trees,
 							v.getCluster(), taxonNameMap, rooted);
+					//System.out.println(v + " XL is " + _el_num);
 				}
+				if (inference.type==1)
+				_el_num = _el_num * 2;
+				//_el_num=0;
+				v._cxl=_el_num/2;
+				v._cdup=0;
+				v._cl=_el_num/2;
+                if (_el_num > 0) {
+                    //System.out.println("\033[31;1m_el_num\033[0m  :" + _el_num);
+                }
 			} else {
 				_el_num = 0;
 			}
-
+			
 			// v._min_cost = 0;
 			v._max_score = -_el_num;
 			v._min_lc = (v._min_rc = null);
@@ -123,12 +134,12 @@ public class ComputeMinCostTask {
 				clusterDLCost = inference.counter.calculateDLstdClusterCost(
 						this.v.getCluster(), inference.trees);
 			}
-			/*
-			 * System.out.println("xL: "+this.v.getCluster() + " "+xl + " "+
-			 * DeepCoalescencesCounter
-			 * .getClusterCoalNum(this.inference.trees, this.v.getCluster(),
-			 * taxonNameMap, true));
-			 */
+			
+			// System.out.println("xL: "+this.v.getCluster() + " "+xl + " "+
+			// DeepCoalescencesCounter
+			// .getClusterCoalNum(this.inference.trees, this.v.getCluster(),
+			// taxonNameMap, true));
+			//System.out.println("clusterResolutions "+clusterResolutions);
 			for (STBipartition bi : clusterResolutions) {
 				try {
 					Vertex smallV = containedVertecies.getVertexForCluster(bi.cluster1);
@@ -138,7 +149,7 @@ public class ComputeMinCostTask {
 					ComputeMinCostTask bigWork = new ComputeMinCostTask(
 							inference, bigv, containedVertecies);
 					CalculateWeightTask weigthWork = null;
-
+					//System.err.println(bi.toString()+" "+smallV.toString()+" "+bigv.toString());
 					// MP_VERSION: smallWork.fork();
 					Double rscore = bigWork.compute();
 
@@ -171,6 +182,9 @@ public class ComputeMinCostTask {
 
 					Integer e = 0;
 					double c;
+					double cxl=0;
+					double cdup=0;
+					double cl=0;
 					if (inference.optimizeDuploss == 3) {
 						
 						int OverlappingGeneCount = 0;
@@ -181,6 +195,7 @@ public class ComputeMinCostTask {
 							Tree tree = inference.trees.get(k);
 							boolean pDisJoint = smallV.getCluster().isDisjoint(treeAll);
 							boolean qDisJoint = bigv.getCluster().isDisjoint(treeAll);
+							//System.err.println(smallV.toString()+ " " + bigv.toString() +" " +treeAll+ " " + pDisJoint+ " " +qDisJoint+" "+tree.toString());
 							if (pDisJoint || qDisJoint) {
 								someSideMissingXLCount +=  taxonNameMap == null ?
 									DeepCoalescencesCounter.getClusterCoalNum_rooted(tree, this.v.getCluster()):
@@ -193,21 +208,40 @@ public class ComputeMinCostTask {
 								OverlappingGeneCount += 1;
 							}							
 						}
+	
+						//c = - ( clusterDLCost - 3 * Wdom - OverlappingGeneCount - someSideMissingXLCount 
+						//  		+ inference.DLbdWeigth * (someSideMissingXLCount + OverlappingGeneCount + bothSidesPresentGeneCount) );
+						if (inference.type ==1)
+						c=-(inference.XLweight*(clusterDLCost-OverlappingGeneCount-someSideMissingXLCount) -inference.Dupweight * Wdom + inference.Lossweight * (clusterDLCost -OverlappingGeneCount-someSideMissingXLCount- 2 * Wdom + inference.DLbdWeigth * (someSideMissingXLCount + OverlappingGeneCount + bothSidesPresentGeneCount)));
+						else
+						c=-(-inference.Dupweight * Wdom + inference.Lossweight * (clusterDLCost -OverlappingGeneCount-someSideMissingXLCount- 2 * Wdom + inference.DLbdWeigth * (someSideMissingXLCount + OverlappingGeneCount + bothSidesPresentGeneCount)));
 						
-						c = - ( clusterDLCost - 3 * Wdom - OverlappingGeneCount - someSideMissingXLCount 
-								+ inference.DLbdWeigth * (someSideMissingXLCount + OverlappingGeneCount + bothSidesPresentGeneCount) );
+						cdup=Wdom;
+						cxl=(clusterDLCost-OverlappingGeneCount-someSideMissingXLCount);
+						cl=(clusterDLCost -OverlappingGeneCount-someSideMissingXLCount- 2 * Wdom + 1 * (someSideMissingXLCount + OverlappingGeneCount + bothSidesPresentGeneCount));
+						//System.err.println("c (DL) is "+ cdup +" "+cxl+" "+ cl + " " +c);
 					} else {
 						c = Wdom;
-					}					
-
+						cdup=Wdom;
+						//System.err.println("c (Dup) is "+c);
+						
+					}				
+					//System.err.println(bi.toString()+" "+smallV.toString()+" "+bigv.toString()+" "+cdup+" "+ cl+" "+cxl+" "+" "+(smallV._cdup + bigv._cdup + cdup)+" "+ (smallV._cl+ bigv._cl + cl)+" "+(smallV._cxl + bigv._cxl + cxl)+" "+(lscore+rscore+c));
 					if ((v._max_score != -1)
 							&& (lscore + rscore + c < v._max_score)) {
 						continue;
 					}
+				
 					v._max_score = (lscore + rscore + c);
+					v._cxl=((inference.XLweight==0)?0:smallV._cxl + bigv._cxl + cxl);
+					v._cdup=(inference.Dupweight==0)?0:(smallV._cdup + bigv._cdup + cdup);
+					v._cl=(inference.Lossweight==0)?0:(smallV._cl+ bigv._cl + cl);
+					
+					
 					v._min_lc = smallV;
 					v._min_rc = bigv;
 					v._c = c;
+					
 
 				} catch (CannotResolveException c) {
 					// System.err.println("Warn: cannot resolve: " +
@@ -267,6 +301,7 @@ public class ComputeMinCostTask {
 			 * if (clusterSize > 5){ counter.addGoodSTB(bestSTB, clusterSize); }
 			 */
 		v._done = 1;
+		
 		return v._max_score;
 	}
 

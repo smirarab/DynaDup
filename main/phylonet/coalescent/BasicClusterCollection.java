@@ -65,6 +65,17 @@ public class BasicClusterCollection implements ClusterCollection {
 	}
 
 	@Override
+	public String toString(){
+		int tmp=1;
+		String s="";
+		// for (HashMap.Entry<STITreeCluster,Vertex> entry : globalVertexCash.entrySet()){
+		// 	System.err.println("Clusters"+tmp+": "+ entry.getKey().toString());
+		// 	tmp++;
+		// }
+		//System.err.println("Clusters are: "+globalVertexCash);
+		return s;
+	}
+	@Override
 	public boolean contains(Vertex vertex) {
 		return clusters.get(vertex.getCluster().getClusterSize()).contains(vertex);
 	}
@@ -107,12 +118,15 @@ public class BasicClusterCollection implements ClusterCollection {
 		STITreeCluster c = getTopVertex().getCluster();
 		ArrayList<STBipartition> ret = new ArrayList<STBipartition>();
 		int clusterSize = topClusterLength;
+		//System.out.println(clusterSize+" "+clusters);
 		for (int i = 1; i <= (clusterSize / 2); i++) {
 			Set<Vertex> left = this.clusters.get(i);
+			//System.out.println("left "+left.toString());
 			if (left == null || left.size() == 0) {
 				continue;
 			}
 			Set<Vertex> right = this.clusters.get(clusterSize - i);
+			//System.out.println("right "+right);
 			if (right == null || right.size() == 0) {
 				continue;
 			}

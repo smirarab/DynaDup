@@ -38,8 +38,14 @@ public class MGDInference_DP {
 	boolean fast = false;
 	boolean extrarooted = true;
 	double DLbdWeigth;
+	double type;
 	double CS;
 	double CD;
+	static String score = null;
+	static String scorefile = null;
+	double Dupweight;
+	double Lossweight;
+	double XLweight;
 
 	List<Tree> trees;
 	private List<Tree> extraTrees = null;
@@ -50,7 +56,7 @@ public class MGDInference_DP {
 	private boolean exactSolution;
 	private STITree st = null;
 	
-	
+
 	class TaxonNameMap {
 		Map<String, String> taxonMap;
 		String pattern = null;
@@ -114,6 +120,7 @@ public class MGDInference_DP {
 		List<Tree> extraTrees = null;
 		String output = null;
 		STITree scorest = null;
+	
 		// boolean explore = false;
 		// double proportion = 0.0D;
 		// boolean exhaust = false;
@@ -123,11 +130,16 @@ public class MGDInference_DP {
 		double time = -1.0D;
 		double wd = 1.0D;
 		double wh = 1.0D;
+		double tp =0D;
 		boolean unresolved = false;		
 		long startTime = System.currentTimeMillis();
 		String line;
 		BufferedReader treeBufferReader = null;
 		BufferedReader extraTreebuffer = null;
+
+		double xlw =1.0D;
+		double lw=1.0D;
+		double dw=1.0D;
 		try {
 			List<String[]> options = getOptions(args);
 			for (String[] option : options) {
@@ -208,7 +220,15 @@ public class MGDInference_DP {
 					}
 					output = option[1];
 					setPrinting (false);
-				} else if (option[0].equals("-x")) {
+				} else if (option[0].equals("-sc")) {
+                        if (option.length != 2) {
+                            printUsage();
+                            return;
+                        }
+                        scorefile = option[1];
+                        setPrinting(false); 
+                        
+                    } else if (option[0].equals("-x")) {
 					if (option.length != 1) {
 						printUsage();
 						return;
@@ -351,7 +371,87 @@ public class MGDInference_DP {
 						printUsage();
 						return;
 					}
-				} else {
+				} else if (option[0].equals("-dlx")) {
+					optimizeDuploss = 1;
+					tp = 1;
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}					
+					try {
+						if (option[1].equals("auto")) {
+							wh = -1;
+							continue;
+						} else {
+							wh = Double.parseDouble(option[1]);
+							if (wh >= 0.0D)
+								continue;
+						}
+						printUsage();
+						return;
+					} catch (NumberFormatException e) {
+						System.err.println("Error in reading parameter wd");
+						printUsage();
+						return;
+					}
+				} else if (option[0].equals("-xlw")) {
+					
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}					
+					try {
+					
+						xlw = Double.parseDouble(option[1]);
+						if (xlw >= 0.0D)
+							continue;
+						
+						printUsage();
+						return;
+					} catch (NumberFormatException e) {
+						System.err.println("Error in reading parameter wd");
+						printUsage();
+						return;
+					}
+				} else if (option[0].equals("-dw")) {
+					
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}					
+					try {
+						
+						dw = Double.parseDouble(option[1]);
+						if (dw >= 0.0D)
+							continue;
+						
+						printUsage();
+						return;
+					} catch (NumberFormatException e) {
+						System.err.println("Error in reading parameter wd");
+						printUsage();
+						return;
+					}
+				} else if (option[0].equals("-lw")) {
+					
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}					
+					try {
+						
+						lw = Double.parseDouble(option[1]);
+						if (lw >= 0.0D)
+							continue;
+						
+						printUsage();
+						return;
+					} catch (NumberFormatException e) {
+						System.err.println("Error in reading parameter wd");
+						printUsage();
+						return;
+					}
+				}  	else {
 					printUsage();
 					return;
 				}
@@ -455,8 +555,9 @@ public class MGDInference_DP {
 		} else {
 			inference = new MGDInference_DP(trees, extraTrees, null);
 		}
-		
+	
 		inference.optimizeDuploss = optimizeDuploss > 0 ? 3 : 1;
+		inference.type=tp;
 		inference.DLbdWeigth = wh; 
 		inference.rooted = rooted;
 		inference.fast = fast;
@@ -466,6 +567,11 @@ public class MGDInference_DP {
 		inference.exactSolution = exactSolution;
 		inference.st = scorest;
 
+		inference.XLweight= wh == 1? xlw : wh;
+		inference.Dupweight= wh == 1? dw : wh;
+		inference.Lossweight= wh == 1? lw : wh;
+		//System.err.println("inference.XLweight "+inference.XLweight+" inference.Dupweight "+inference.Dupweight+" inference.Lossweight "+inference.Lossweight);
+		
 		if (scorest != null) {
 			inference.scoreGeneTree();
 			System.exit(0);
@@ -484,7 +590,7 @@ public class MGDInference_DP {
 			if (optimizeDuploss == 0) {
 				metric = "duplications";
 			} else if (optimizeDuploss == 1) {
-				metric = "duplication+loss (homomorphic)";
+				metric = "duplication+loss (homomorphic) + XL";
 			} else {
 				metric = "duplication+loss (original)";
 			}
@@ -494,6 +600,7 @@ public class MGDInference_DP {
 						+ " \n"
 						+ s._totalCoals
 						+ " " + metric + " in total");
+			 
 		} else
 			try {
 				FileWriter fw = new FileWriter(output);
@@ -501,6 +608,13 @@ public class MGDInference_DP {
 					fw.write(s._st.toString()+ " \n");
 				}
 				fw.close();
+			
+				if(scorefile!=null){
+				FileWriter fw1 = new FileWriter(scorefile);			
+                fw1.write(score);
+				fw1.close();
+				}
+
 			} catch (IOException e) {
 				System.err.println("Error when writing the species tree");
 				System.err.println(e.getMessage());
@@ -712,7 +826,7 @@ public class MGDInference_DP {
 		System.err.println("Number of taxa: " + stTaxa.length);
 		System.err.println("Taxa: " + Arrays.toString(stTaxa));
 
-		 ClusterCollection clusters = new BasicClusterCollection(stTaxa.length);
+		ClusterCollection clusters = new BasicClusterCollection(stTaxa.length);
 
 		List<Solution> solutions;
 
@@ -878,7 +992,7 @@ public class MGDInference_DP {
 
 		if (_print) {
 			//System.err.println("Weights are: "
-				//	+ counter.weights);
+			//		+ counter.weights);
 		}
 		//System.out.println("domination calcs:" + counter.cnt);
 
@@ -931,7 +1045,7 @@ public class MGDInference_DP {
 		} else {
 			sol._st = buildTreeFromClusters(minClusters);
 		}
-		//System.err.println("SOL: " + sol._st);
+		System.err.println("SOL: " + sol._st);
 		//System.err.println("coals: " + coals);
 		//System.err.println("min cluster: " + minClusters);
 		Object map = new HashMap();
@@ -952,12 +1066,12 @@ public class MGDInference_DP {
 				}
 				((Map) map).put(node, bs);
 			}
-//            System.err.println("Node: "+node);
+            //System.err.println("Node: "+node);
 			STITreeCluster c = new STITreeCluster(stTaxa);
 			c.setCluster(bs);
-//            System.err.println("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
-//            System.err.println("C: "+c.toString2());
-//            System.err.println("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
+            // System.err.println("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
+            // System.err.println("C: "+c.toString2());
+            // System.err.println("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
 			if (c.getClusterSize() == stTaxa.length) {
 				((STINode) node).setData(Double.valueOf(0));
 			} else {
@@ -965,9 +1079,16 @@ public class MGDInference_DP {
 				((STINode) node).setData((Double) coals.get(pos));
 			}
 		}
-
-		sol._totalCoals = (int) (sigmaNs - all._max_score);
-		System.out.println("total cost: " + (sigmaNs - all._max_score));
+		if (type == 0) all._cxl=0;
+		//sol._totalCoals = (int); (sigmaNs - all._max_score);
+		
+		//System.out.println(sigmaNs+ " "+ all._max_score);
+		int temp = (int)(sigmaNs-all._cdup); 
+		if (all._cdup==0) temp=0;
+		sol._totalCoals= (int)((temp)+all._cl+all._cxl);
+		System.out.println("# of duplications "+ (temp)+" # of losses "+all._cl+" # of XL "+all._cxl+" total cost: " + sol._totalCoals);
+		
+		score = temp + " " + (int)(all._cl) + " " + (int)(all._cxl) + " " + sol._totalCoals;
 		solutions.add(sol);
 
 		return (List<Solution>) (List<Solution>) solutions;
@@ -1007,5 +1128,48 @@ public class MGDInference_DP {
 		}
 		return total;
 	}
+
+
+    /**
+     * @return List<Tree> return the extraTrees
+     */
+    public List<Tree> getExtraTrees() {
+        return extraTrees;
+    }
+
+    /**
+     * @param extraTrees the extraTrees to set
+     */
+    public void setExtraTrees(List<Tree> extraTrees) {
+        this.extraTrees = extraTrees;
+    }
+
+    /**
+     * @return boolean return the exactSolution
+     */
+    public boolean isExactSolution() {
+        return exactSolution;
+    }
+
+    /**
+     * @param exactSolution the exactSolution to set
+     */
+    public void setExactSolution(boolean exactSolution) {
+        this.exactSolution = exactSolution;
+    }
+
+    /**
+     * @return STITree return the st
+     */
+    public STITree getSt() {
+        return st;
+    }
+
+    /**
+     * @param st the st to set
+     */
+    public void setSt(STITree st) {
+        this.st = st;
+    }
 
 }

@@ -287,6 +287,9 @@ public class STITreeCluster
 		//public int _el_num = -1;
 		//public int _min_cost = -1;
 		public double _max_score = Integer.MIN_VALUE;
+    public double _cxl=0;
+    public double _cdup=0;
+    public double _cl=0;
 		public double _c = 0;
 		public Vertex _min_lc = this._min_rc = null;
 		public Vertex _min_rc;

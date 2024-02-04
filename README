@@ -1,6 +1,6 @@
 DESCRIPTION:
 ----------------------
-DynaDup is a Java program based on phylonet (bioinfo.cs.rice.edu/phylonet) for estimating species trees given a set of rooted gene trees, such that duplications or duplication and losses are minimized (within a constrained search space). The algorithm used is described in:
+DynaDup is a Java program based on phylonet (bioinfo.cs.rice.edu/phylonet) for estimating species trees given a set of rooted gene trees, such that "duplications" or "duplications and losses" or "duplications, losses and extra lineages" are minimized (within a constrained search space). The algorithm used is described in:
 
 S. Bayzid, S. Mirarab, T. Warnow, "Optimal Species Trees under Gene Duplication and Loss", Pacific Symposium on Biocomputing (PSB) 2013 and
 S. Bayzid and T. Warnow, "Gene Tree Parsimony for Incomplete Gene Trees". 17th International Workshop on Algorithms for Bioinformatics (WABI) 2017. Lecture Notes in Computer Science (LNCS).
@@ -10,7 +10,7 @@ INSTALLATION:
 ----------------------
 There is no installation required to run DynaDup. You should replicate the github repository (https://github.com/smirarab/DynaDup/) and run make.sh to build the project. 
 
-DynaDup is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested DynaDup only on Linux.
+DynaDup is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested DynaDup only on Linux. The solutions to MGD, MGDL and MGDLX problems are denoted as DynaDup-D, DynaDup-DL, and DynaDup-DLX. 
 
 EXECUTION:
 ---------------------
@@ -20,6 +20,8 @@ java -jar mgd.2.3.2.jar
 
 This will give you a list of options available in DynaDup.
 
+EXECUTION of DynaDup-D:
+-----------------------
 To find the species tree that minimizing duplications (MGD) given a set of gene trees in a file called in.tree, use:
 
 java -jar mgd.2.3.2.jar -i in.tree
@@ -28,6 +30,8 @@ The results will be outputted to the standard output. To save the results in a f
 
 java -jar mgd.2.3.2.jar -i in.tree -o out.tre
 
+EXECUTION of DynaDup-DL:
+------------------------
 To minimize duplications and losses based on the traditional definition (using homeomorphic restriction, MGDL_h), run:
 
 java -jar mgd.2.3.2.jar -i in.tree -dl
@@ -35,6 +39,21 @@ java -jar mgd.2.3.2.jar -i in.tree -dl
 To minimize duplications and losses using our new definition (using the original tree and considering missing taxa as losses, MGDL), run:
 
 java -jar mgd.2.3.2.jar -i in.tree -dll
+
+
+EXECUTION of DynaDup-DLX:
+------------------------
+To minimize duplications, losses and extra lineages, run:
+
+java -jar mgd.2.3.2.jar -i in.tree -dlx 1
+
+You can assign weights individually on duplications, losses and extra lineages using -dw, -lw and -xlw options respectively. For example:
+ 
+java -jar mgd.2.3.2.jar -i in.tree -dlx 1 -dw Cd -lw Cl -xlw Cxl
+
+To save the scores in a file use the -sc option:
+
+java -jar mgd.2.3.2.jar -i in.tree -o out.tre -sc score.txt
 
 Note that, currently, the input gene trees need to be a) fully resolved, b) rooted. 
 
