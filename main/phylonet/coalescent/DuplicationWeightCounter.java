@@ -16,6 +16,7 @@ import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
+import phylonet.tree.model.sti.STITreeBipartition;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
@@ -106,9 +107,12 @@ public class DuplicationWeightCounter {
 				continue;*/
 			boolean c1 = cluster.containsCluster(otherSTB.cluster1);
 			boolean c2 = cluster.containsCluster(otherSTB.cluster2);
+
 			if ((c1 && !c2) || (c2 && !c1)) {
 				weight += entry.getValue();
+				//System.err.println("calculateDLstdClusterCost "+ cluster.toString()+ " "+otherSTB + " "+c1 + " "+ c2);
 			}
+			
 		}
 		for (Entry<SimpleEntry<STITreeCluster, STITreeCluster>, Integer> entry : geneTreeInvalidSTBCont.entrySet()) {
 			SimpleEntry<STITreeCluster, STITreeCluster> otherSTB = entry.getKey();
@@ -117,12 +121,15 @@ public class DuplicationWeightCounter {
 			if ((c1 && !c2) || (c2 && !c1)) {
 				weight += entry.getValue();
 			}
+			//System.err.println("InvalidcalculateDLstdClusterCost "+ cluster.toString()+ " "+otherSTB + " "+c1 + " "+ c2);
 		}
 		for (STITreeCluster treeAll : treeAlls) {
+			//System.err.println(treeAll.toString());
 			if (cluster.containsCluster(treeAll)) {
 				weight++;
 			}
 		}
+		//System.err.println("weight calculation done "+ weight);
 		int ret = weight;
 		// XLweights.put(cluster, ret);
 		return ret;
@@ -150,6 +157,8 @@ public class DuplicationWeightCounter {
 			String t = as[i];
 			all.addLeaf(t);
 		}
+		//System.err.println("Largest cluster "+all.toString());
+		//System.err.println("Modified "+all.toString2());
 		addToClusters(all, leaves.length, false);
 
 		for (int t = 0; t < inference.trees.size(); t++) {
@@ -167,15 +176,15 @@ public class DuplicationWeightCounter {
 
 			weightedConstant += duploss ? 
 					2 * (allInducedByGTSize - 1) : 0;
-					
+				
 			unweigthedConstant += (tr.getLeafCount() - 1);
-
+			//System.out.println("weightedConstant "+weightedConstant+" unweightedConstant "+unweigthedConstant);
 			Map<TNode, STITreeCluster> nodeToSTCluster = new HashMap<TNode, STITreeCluster>(n);
 			// Map<TNode,STITreeCluster> nodeToGTCluster = new HashMap<TNode,
 			// STITreeCluster>(n);
 
 			for (TNode node : tr.postTraverse()) {				
-				// System.err.println("Node is:" + node);
+				//System.err.println("Node is:" + node);
 				if (node.isLeaf()) {
 					String nodeName = node.getName();
 
@@ -284,10 +293,18 @@ public class DuplicationWeightCounter {
 		System.err.println("STBs in gene trees (count): "
 				+ geneTreeSTBCount.size());
 		System.err.println("STBs in gene trees (sum): " + s);
-
+	
+		int tmp=1;
+		// for (Map.Entry<STBipartition,Integer> entry : geneTreeSTBCount.entrySet()){
+		// 	System.err.println("STB"+tmp+": "+ entry.getKey().toString()+" "+entry.getValue());
+		// 	tmp++;
+		// }
+		//System.err.println("STBs are: "+geneTreeSTBCount);
 		s = clusters.getClusterCount();
+	
 
 		System.err.println("Number of Clusters: " + s);
+		
 
 		weights = new HashMap<STBipartition, Integer>(
 				geneTreeSTBCount.size() * 2);
@@ -297,8 +314,8 @@ public class DuplicationWeightCounter {
 			inference.DLbdWeigth = (weightedConstant + 2*k + 0.0D) / 2*(k*n);
 			System.out.println("Estimated bd weight = " + inference.DLbdWeigth);
 		}
-			
-		return (unweigthedConstant + (1 - inference.DLbdWeigth) * weightedConstant);
+		
+		return (unweigthedConstant + (1 - 1) * weightedConstant);
 	}
 
 	void addAllPossibleSubClusters(STITreeCluster cluster, int size) {
@@ -512,12 +529,15 @@ public class DuplicationWeightCounter {
 
 	void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
 
+		
+		//System.err.println(rooted+ " "+ taxonNameMap + " "+  stTaxa.length + " "+ trees.size());
 		if (rooted && taxonNameMap == null && stTaxa.length > trees.size()) {
 			calculateWeightsByLCA(trees, trees);
 			if (extraTrees != null) {
 				calculateWeightsByLCA(extraTrees, trees);
 			}
 		}
+		//System.err.println("Weights are: "+ weights);
 
 	}
 
@@ -572,6 +592,12 @@ public class DuplicationWeightCounter {
 				}
 			}
 		}
+		//int tmp=1;
+		// for (HashMap.Entry<STBipartition,Integer> entry : weights.entrySet()){
+		// 	System.err.println("No_Dom_bySTB"+tmp+" "+ entry.getKey().toString()+" "+entry.getValue());
+		// 	tmp++;
+		// }
+		//System.err.println("Weights are: "+ weights);
 	}
 
 	class CalculateWeightTask {
@@ -614,6 +640,7 @@ public class DuplicationWeightCounter {
 			}
 			weights.put(stb, weight);
 			// System.err.println("Weight of " + biggerSTB + " is " + weight);
+			//System.err.println("Weights aree "+weights);
 			return weight;
 		}
 

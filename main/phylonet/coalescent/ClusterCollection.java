@@ -13,6 +13,8 @@ public interface ClusterCollection {
 	int getClusterCount();
 
 	boolean addCluster(Vertex nv, int size);
+    
+	String toString();
 
 	boolean contains(Vertex reverse);
 
