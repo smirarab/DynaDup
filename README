@@ -2,9 +2,11 @@ DESCRIPTION:
 ----------------------
 DynaDup is a Java program based on phylonet (bioinfo.cs.rice.edu/phylonet) for estimating species trees given a set of rooted gene trees, such that "duplications" or "duplications and losses" or "duplications, losses and extra lineages" are minimized (within a constrained search space). The algorithm used is described in:
 
-S. Bayzid, S. Mirarab, T. Warnow, "Optimal Species Trees under Gene Duplication and Loss", Pacific Symposium on Biocomputing (PSB) 2013 and
+S. Bayzid, S. Mirarab, T. Warnow, "Optimal Species Trees under Gene Duplication and Loss". Pacific Symposium on Biocomputing (PSB) 2013 and
 S. Bayzid and T. Warnow, "Gene Tree Parsimony for Incomplete Gene Trees". 17th International Workshop on Algorithms for Bioinformatics (WABI) 2017. Lecture Notes in Computer Science (LNCS).
 S. Bayzid and T. Warnow, "Gene tree parsimony for incomplete gene trees: addressing true biological loss". Algorithms for Molecular Biology, 13, Article number: 1 (2018)
+P. Saha, S. Islam, T. Rahman, A. Shaira, K. Noshin, R. Reaz, S. Bayzid, "Gene tree parsimony in the presence of gene duplication, loss, and incomplete lineage sorting". RECOMB-CG (2024) (Under Review)
+
 
 INSTALLATION:
 ----------------------
@@ -43,11 +45,11 @@ java -jar mgd.2.3.2.jar -i in.tree -dll
 
 EXECUTION of DynaDup-DLX:
 ------------------------
-To minimize duplications, losses and extra lineages, run:
+To minimize duplications, losses and extra lineages (With equal wights), run:
 
 java -jar mgd.2.3.2.jar -i in.tree -dlx 1
 
-You can assign weights individually on duplications, losses and extra lineages using -dw, -lw and -xlw options respectively. For example:
+You can assign weights (Cd, Cl, Cxl) individually on duplications, losses and extra lineages using -dw, -lw and -xlw options respectively. For example:
  
 java -jar mgd.2.3.2.jar -i in.tree -dlx 1 -dw Cd -lw Cl -xlw Cxl
 
@@ -108,4 +110,4 @@ DynaDup code uses code from the PhyloNet package (by Luay Nakhleh).
 
 Bug Reports:
 -----------------
-contact smirarab@gmail.com
+contact prottoy@cse.kuet.ac.bd
